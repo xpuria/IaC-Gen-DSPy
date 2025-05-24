@@ -1,0 +1,93 @@
+{
+  "title_generator.predict": {
+    "traces": [],
+    "train": [],
+    "demos": [
+      {
+        "augmented": true,
+        "original_prompt": "Configure a query log that can create a log stream and put log events using Route 53 resources. Name the zone \"primary\", the cloudwatch log group \"aws_route53_example_com\", and the cloudwatch log resource policy \"route53-query-logging-policy\"",
+        "iac_code": "terraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp\/aws\"\n      version = \"~> 5.75\"\n    }\n  }\n\n  required_version = \"~> 1.9.8\"\n}\n\nprovider \"aws\" {\n  region  = \"us-east-1\"\n  profile = \"admin-1\"\n\n  assume_role {\n    role_arn = \"arn:aws:iam::590184057477:role\/yicun-iac\"\n  }\n}\n\n\nresource \"aws_route53_zone\" \"primary\" {\n  name = \"example53.com\"\n}\n\nresource \"aws_cloudwatch_log_group\" \"aws_route53_example_com\" {\n  name              = \"\/aws\/route53\/${aws_route53_zone.primary.name}\"\n  retention_in_days = 30\n}\n\n# Example CloudWatch log resource policy to allow Route53 to write logs\n# to any log group under \/aws\/route53\/*\n\ndata \"aws_iam_policy_document\" \"route53-query-logging-policy\" {\n  statement {\n    actions = [\n      \"logs:CreateLogStream\",\n      \"logs:PutLogEvents\",\n    ]\n\n    resources = [\"arn:aws:logs:*:*:log-group:\/aws\/route53\/*\"]\n\n    principals {\n      identifiers = [\"route53.amazonaws.com\"]\n      type        = \"Service\"\n    }\n  }\n}\n\nresource \"aws_cloudwatch_log_resource_policy\" \"route53-query-logging-policy\" {\n  policy_document = data.aws_iam_policy_document.route53-query-logging-policy.json\n  policy_name     = \"route53-query-logging-policy\"\n}\n\nresource \"aws_route53_query_log\" \"example_com\" {\n  depends_on = [aws_cloudwatch_log_resource_policy.route53-query-logging-policy]\n\n  cloudwatch_log_group_arn = aws_cloudwatch_log_group.aws_route53_example_com.arn\n  zone_id                  = aws_route53_zone.primary.zone_id\n}",
+        "reasoning": "The user prompt asks to configure a query log that can create a log stream and put log events using Route 53 resources. The IaC code provided uses Terraform to set up an AWS environment, including creating a Route 53 zone, configuring CloudWatch Log Group for the specified domain, defining a policy allowing Route 53 to write logs, and associating this policy with a query log resource.",
+        "snippet_title": "Route 53 Query Log Configuration"
+      },
+      {
+        "augmented": true,
+        "original_prompt": "Configure a valid Route 53 zone association resource",
+        "iac_code": "provider \"aws\" {\n    region = \"us-east-1\"\n}\n\nresource \"aws_vpc\" \"example\" {\n  cidr_block           = \"10.6.0.0\/16\"\n  enable_dns_hostnames = true\n  enable_dns_support   = true\n}\n\nresource \"aws_route53_zone\" \"example\" {\n  name = \"example.com\"\n\n  vpc {\n    vpc_id = aws_vpc.example.id\n  }\n}\n\nresource \"aws_vpc\" \"alternate\" {\n  cidr_block           = \"10.7.0.0\/16\"\n  enable_dns_hostnames = true\n  enable_dns_support   = true\n}\n\nresource \"aws_route53_vpc_association_authorization\" \"example\" {\n  vpc_id  = aws_vpc.alternate.id\n  zone_id = aws_route53_zone.example.id\n}\n\nresource \"aws_route53_zone_association\" \"example\" {\n  vpc_id  = aws_route53_vpc_association_authorization.example.vpc_id\n  zone_id = aws_route53_vpc_association_authorization.example.zone_id\n}",
+        "reasoning": "The provided IaC code is written in Terraform HCL to configure a Route 53 zone association resource. It involves setting up an AWS VPC, creating a Route 53 zone, associating this zone with another VPC using authorization, and then associating the zone with the VPC.",
+        "snippet_title": "AWS VPC & Route 53 Zone Association Configuration"
+      }
+    ],
+    "signature": {
+      "instructions": "Given a user prompt and its corresponding IaC code, generate a concise, descriptive title for the IaC code block.",
+      "fields": [
+        {
+          "prefix": "Original Prompt:",
+          "description": "The original user prompt that led to the IaC code."
+        },
+        {
+          "prefix": "Iac Code:",
+          "description": "The Terraform HCL code block."
+        },
+        {
+          "prefix": "Reasoning: Let's think step by step in order to",
+          "description": "${reasoning}"
+        },
+        {
+          "prefix": "Snippet Title:",
+          "description": "A short, descriptive title for the IaC code (e.g., 'S3 Bucket with Versioning')."
+        }
+      ]
+    },
+    "lm": null
+  },
+  "keyword_extractor.predict": {
+    "traces": [],
+    "train": [],
+    "demos": [
+      {
+        "augmented": true,
+        "original_prompt": "Configure a query log that can create a log stream and put log events using Route 53 resources. Name the zone \"primary\", the cloudwatch log group \"aws_route53_example_com\", and the cloudwatch log resource policy \"route53-query-logging-policy\"",
+        "iac_code": "terraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp\/aws\"\n      version = \"~> 5.75\"\n    }\n  }\n\n  required_version = \"~> 1.9.8\"\n}\n\nprovider \"aws\" {\n  region  = \"us-east-1\"\n  profile = \"admin-1\"\n\n  assume_role {\n    role_arn = \"arn:aws:iam::590184057477:role\/yicun-iac\"\n  }\n}\n\n\nresource \"aws_route53_zone\" \"primary\" {\n  name = \"example53.com\"\n}\n\nresource \"aws_cloudwatch_log_group\" \"aws_route53_example_com\" {\n  name              = \"\/aws\/route53\/${aws_route53_zone.primary.name}\"\n  retention_in_days = 30\n}\n\n# Example CloudWatch log resource policy to allow Route53 to write logs\n# to any log group under \/aws\/route53\/*\n\ndata \"aws_iam_policy_document\" \"route53-query-logging-policy\" {\n  statement {\n    actions = [\n      \"logs:CreateLogStream\",\n      \"logs:PutLogEvents\",\n    ]\n\n    resources = [\"arn:aws:logs:*:*:log-group:\/aws\/route53\/*\"]\n\n    principals {\n      identifiers = [\"route53.amazonaws.com\"]\n      type        = \"Service\"\n    }\n  }\n}\n\nresource \"aws_cloudwatch_log_resource_policy\" \"route53-query-logging-policy\" {\n  policy_document = data.aws_iam_policy_document.route53-query-logging-policy.json\n  policy_name     = \"route53-query-logging-policy\"\n}\n\nresource \"aws_route53_query_log\" \"example_com\" {\n  depends_on = [aws_cloudwatch_log_resource_policy.route53-query-logging-policy]\n\n  cloudwatch_log_group_arn = aws_cloudwatch_log_group.aws_route53_example_com.arn\n  zone_id                  = aws_route53_zone.primary.zone_id\n}",
+        "reasoning": "The IaC code provided is written in Terraform to configure a query log that can create a log stream and put log events using Route 53 resources. The key actions include creating an AWS Route 53 zone, setting up a CloudWatch log group with retention policy, defining a CloudWatch log resource policy for Route 53 access, and associating this policy with the log group to enable logging.",
+        "keywords_string": "Terraform, aws_route53_zone, cloudwatch_log_group, route53-query-logging-policy, log_stream, put_log_events"
+      },
+      {
+        "augmented": true,
+        "original_prompt": "Configure a valid Route 53 zone association resource",
+        "iac_code": "provider \"aws\" {\n    region = \"us-east-1\"\n}\n\nresource \"aws_vpc\" \"example\" {\n  cidr_block           = \"10.6.0.0\/16\"\n  enable_dns_hostnames = true\n  enable_dns_support   = true\n}\n\nresource \"aws_route53_zone\" \"example\" {\n  name = \"example.com\"\n\n  vpc {\n    vpc_id = aws_vpc.example.id\n  }\n}\n\nresource \"aws_vpc\" \"alternate\" {\n  cidr_block           = \"10.7.0.0\/16\"\n  enable_dns_hostnames = true\n  enable_dns_support   = true\n}\n\nresource \"aws_route53_vpc_association_authorization\" \"example\" {\n  vpc_id  = aws_vpc.alternate.id\n  zone_id = aws_route53_zone.example.id\n}\n\nresource \"aws_route53_zone_association\" \"example\" {\n  vpc_id  = aws_route53_vpc_association_authorization.example.vpc_id\n  zone_id = aws_route53_vpc_association_authorization.example.zone_id\n}",
+        "reasoning": "The IaC code provided is written in Terraform to create AWS resources. It includes a VPC resource, Route 53 zone creation, and association between VPC and Route 53 zone. The main focus here is on configuring a valid Route 53 zone association.",
+        "keywords_string": "aws, terraform, vpc, route53_zone, association"
+      }
+    ],
+    "signature": {
+      "instructions": "Given an original prompt and an IaC code block, extract 5-7 relevant keywords for retrieving this IaC snippet. \nFocus on resource types, key actions (create, deploy, configure), important parameters, and cloud services mentioned.",
+      "fields": [
+        {
+          "prefix": "Original Prompt:",
+          "description": "The user prompt."
+        },
+        {
+          "prefix": "Iac Code:",
+          "description": "The IaC code."
+        },
+        {
+          "prefix": "Reasoning: Let's think step by step in order to",
+          "description": "${reasoning}"
+        },
+        {
+          "prefix": "Keywords String:",
+          "description": "A comma-separated list of 5-7 relevant keywords (e.g., aws, s3, bucket, versioning, encryption)."
+        }
+      ]
+    },
+    "lm": null
+  },
+  "metadata": {
+    "dependency_versions": {
+      "python": "3.11",
+      "dspy": "2.6.24",
+      "cloudpickle": "3.1"
+    }
+  }
+}

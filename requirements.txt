@@ -1,0 +1,6 @@
+dspy-ai
+dspy
+openai
+python-dotenv
+datasets
+pandas
