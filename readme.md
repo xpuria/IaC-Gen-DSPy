@@ -25,7 +25,7 @@ This project generates Infrastructure-as-Code (IaC) for AWS from natural languag
 
 ```plaintext
 iac_generator_project/
-├── [main.py](http://_vscodecontentref_/1)                   # Main script for optimization and running IaC generation
+├── (main.py)[http://_vscodecontentref_/1]                 # Main script for optimization and running IaC generation
 ├── [iac_workflow.py](http://_vscodecontentref_/2)           # DSPy Signatures and the main IaCGenerator Module
 ├── [data_utils.py](http://_vscodecontentref_/3)             # Utilities for loading the 'autti/iac-eval' dataset
 ├── [pseudo_rag_store.py](http://_vscodecontentref_/4)       # Loads and queries the RAG knowledge base from [rag_kb.jsonl](http://_vscodecontentref_/5)
