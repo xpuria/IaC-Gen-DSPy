@@ -1,4 +1,4 @@
-#!/Users/pouriamohammadalipourahari/LLM-IaC/venv/bin/python
+#!/Users/pouriamohammadalipourahari/IaC-Gen-DSPy/venv/bin/python3.12
 # -*- coding: utf-8 -*-
 import re
 import sys
