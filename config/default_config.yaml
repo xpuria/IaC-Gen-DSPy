@@ -1,0 +1,86 @@
+# IaC-Gen-DSPy Default Configuration
+
+# Language Model Configuration
+llm:
+  # Primary model for IaC generation
+  model: "openai/gpt-4o-mini"
+  max_tokens: 2000
+  temperature: 0.1
+  
+  # Alternative models for different tasks
+  metadata_model: "ollama_chat/qwen2:7b"
+  metadata_api_base: "http://localhost:11434"
+  metadata_max_tokens: 250
+
+# Dataset Configuration
+dataset:
+  name: "autoiac-project/iac-eval"
+  split: "test"
+  max_examples_training: 20
+  max_examples_evaluation: 50
+  train_ratio: 0.7
+
+# RAG Configuration
+rag:
+  enabled: true
+  kb_file: "rag_kb.jsonl"
+  max_snippets_per_query: 3
+  keyword_matching_threshold: 0.5
+  build_kb_examples: 10
+
+# Generation Configuration
+generation:
+  max_retries: 2
+  use_terraform_cli_validation: true
+  use_rag: true
+  retry_on_validation_failure: true
+
+# Optimization Configuration
+optimization:
+  framework: "BootstrapFewShot"
+  max_bootstrapped_demos: 3
+  max_labeled_demos: 3
+  max_rounds: 1
+  optimization_examples: 15
+
+# Validation Configuration
+validation:
+  terraform_cli: true
+  heuristic_checks: true
+  timeout_seconds: 60
+  temp_dir_cleanup: true
+
+# Metrics and Evaluation
+metrics:
+  detailed_evaluation: true
+  save_generation_history: true
+  benchmark_examples: 50
+  efficiency_test_examples: 10
+
+# Output Configuration
+output:
+  metrics_file: "metrics_report.json"
+  benchmark_results: "benchmark_results.json"
+  showcase_report: "showcase_metrics.json"
+  log_level: "INFO"
+  save_intermediate_results: false
+
+# Performance Configuration
+performance:
+  parallel_processing: false
+  batch_size: 1
+  timeout_per_example: 120
+  memory_optimization: false
+
+# Cloud Provider Support
+providers:
+  aws:
+    enabled: true
+    default_region: "us-west-2"
+    supported_services: ["ec2", "s3", "vpc", "rds", "lambda", "iam"]
+  
+  # Future support
+  azure:
+    enabled: false
+  gcp:
+    enabled: false
