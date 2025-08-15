@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from data_utils import load_iac_dataset 
 from typing import List 
 
-# --- DSPy Signatures for Metadata Generation ---
+#DSPy Signatures for Metadata Generation
 class SnippetTitleGeneratorSignature(dspy.Signature):
     """Given a user prompt and its corresponding IaC code, generate a concise, descriptive title for the IaC code block."""
     original_prompt:str = dspy.InputField(desc="The original user prompt that led to the IaC code.")
@@ -18,15 +18,15 @@ class SnippetKeywordExtractorSignature(dspy.Signature):
     Focus on resource types, key actions (create, deploy, configure), important parameters, and cloud services mentioned."""
     original_prompt:str = dspy.InputField(desc="The user prompt.")
     iac_code:str = dspy.InputField(desc="The IaC code.")
-    # The output field should ideally be a string that we can parse, 
-    # as direct List output can be tricky across different LMs with Predict.
+    #the output field should ideally be a string that we can parse, 
+    #as direct List output can be tricky across different LMs with Predict.
     keywords_string:str = dspy.OutputField(desc="A comma-separated list of 5-7 relevant keywords (e.g., aws, s3, bucket, versioning, encryption).")
 
-# --- DSPy Module for Metadata Generation ---
+#DSPy Module for Metadata Generation
 class MetadataGenerationModule(dspy.Module):
     def __init__(self):
         super().__init__()
-        # These will be optimized. We use ChainOfThought for potentially more complex reasoning.
+
         self.title_generator = dspy.ChainOfThought(SnippetTitleGeneratorSignature)
         self.keyword_extractor = dspy.ChainOfThought(SnippetKeywordExtractorSignature)
 
@@ -38,17 +38,14 @@ class MetadataGenerationModule(dspy.Module):
         keywords_str = keyword_result.keywords_string if keyword_result.keywords_string else ""
         keywords_list = [kw.strip().lower() for kw in keywords_str.split(',') if kw.strip()]
         
-        # Basic fallback for keywords if LLM fails to produce them
+
         if not keywords_list:
             prompt_keywords = [word.lower() for word in original_prompt.split() if len(word) > 3 and word.isalnum()]
             keywords_list = list(set(prompt_keywords))[:7]
             
         return snippet_title, list(set(keywords_list))
 
-# --- Metric for Optimizing Metadata Generation (Example) ---
-# This is tricky because "good" titles/keywords are subjective.
-# For demonstration, we'll use a simple metric: did it produce non-empty output?
-# A real metric would require human evaluation or more sophisticated checks.
+
 def metadata_metric(gold_example: dspy.Example, prediction: tuple[str, List[str]], trace=None) -> float:
     """
     A simple metric for metadata generation.
@@ -57,9 +54,9 @@ def metadata_metric(gold_example: dspy.Example, prediction: tuple[str, List[str]
     """
     generated_title, generated_keywords_list = prediction
     score = 0.0
-    if generated_title and generated_title != gold_example.original_prompt[:70]: # Check if it's not just the fallback
+    if generated_title and generated_title != gold_example.original_prompt[:70]: 
         score += 0.5
-    if generated_keywords_list and len(generated_keywords_list) > 1 : # Check if more than one keyword was generated
+    if generated_keywords_list and len(generated_keywords_list) > 1 :
         score += 0.5
     return score
 
@@ -72,20 +69,19 @@ def build_and_optimize_metadata_generator(
     
     student_metadata_module = MetadataGenerationModule()
     
-    # If no eval_examples provided, use a subset of train_examples (not ideal but works for demo)
+
     if not eval_examples_for_optimizer and len(train_examples_for_optimizer) > 1:
         eval_examples_for_optimizer = train_examples_for_optimizer[:max(1, len(train_examples_for_optimizer) // 10)]
 
 
-    # Configure and run the optimizer
+
     from dspy.teleprompt import BootstrapFewShot
-    # For metadata generation, a simpler optimizer might be fine, or even just a few hand-crafted demos.
-    # But to fulfill the request for an optimizer:
-    config = dict(max_bootstrapped_demos=2, max_labeled_demos=2, max_rounds=1) # Keep low for speed
+
+    config = dict(max_bootstrapped_demos=2, max_labeled_demos=2, max_rounds=1) 
     
     teleprompter = BootstrapFewShot(
         metric=metadata_metric,
-        # metric_kwargs={'gold_standard_titles': {...}, 'gold_standard_keywords': {...}}, # If you had gold data
+
         **config
     )
     
@@ -98,7 +94,7 @@ def build_and_optimize_metadata_generator(
 
     optimized_metadata_module = teleprompter.compile(
         student=student_metadata_module,
-        trainset=metadata_trainset, # Use the reformatted examples
+        trainset=metadata_trainset, 
         #eval_kwargs={'num_threads': 1, 'display_progress': True, 'display_table': 0}
     )
     
@@ -110,13 +106,13 @@ def build_knowledge_base_with_optimized_module(
         optimized_module_path="optimized_metadata_generator.json",
         output_file="rag_kb.jsonl", 
         dataset_to_process: List[dspy.Example] = None,
-        max_examples_for_kb=10 # How many to actually put in the KB
+        max_examples_for_kb=10 
     ):
     """
     Uses a pre-optimized metadata generator to build the RAG knowledge base.
     """
-    # Load the optimized module
-    loaded_metadata_module = MetadataGenerationModule() # Instantiate base class
+
+    loaded_metadata_module = MetadataGenerationModule() 
     try:
         loaded_metadata_module.load(optimized_module_path)
         print(f"Loaded optimized metadata generator from {optimized_module_path}")
@@ -136,7 +132,7 @@ def build_knowledge_base_with_optimized_module(
     for i, example in enumerate(examples_for_kb): # example has .prompt and .expected_iac_code
         print(f"  Generating metadata for KB entry {i+1}/{len(examples_for_kb)}: {example.prompt[:50]}...")
         try:
-            # Use the loaded (optimized) module
+
             snippet_title, keywords_list = loaded_metadata_module(
                 original_prompt=example.prompt, 
                 iac_code=example.expected_iac_code
@@ -150,7 +146,7 @@ def build_knowledge_base_with_optimized_module(
             })
         except Exception as e:
             print(f"    Error generating metadata for example: {e}")
-            # Fallback if the loaded module fails
+
             processed_snippets.append({
                 "snippet_name": example.prompt[:70],
                 "keywords": [word.lower() for word in example.prompt.split() if len(word) > 3 and word.isalnum()][:7],
@@ -169,31 +165,30 @@ if __name__ == "__main__":
 
     llm_preproc_config = dspy.LM(model='ollama_chat/qwen2:7b', api_base="http://localhost:11434", max_tokens=250)
 
-    # Configure DSPy settings for this script
+
     dspy.settings.configure(lm=llm_preproc_config)
 
-    #Step 1: Optimize the Metadata Generator (run once or when you want to re-optimize)
+
     optimizer_train_dev_examples = load_iac_dataset(split="test", max_examples=10)
     
     if not optimizer_train_dev_examples or len(optimizer_train_dev_examples) < 2:
         print("Not enough examples to train/optimize the metadata generator. Aborting.")
         exit()
 
-    # Simple split for optimizer's training
+
     opt_train_split = max(1, int(len(optimizer_train_dev_examples) * 0.7))
     optimizer_train_examples = optimizer_train_dev_examples[:opt_train_split]
 
-    # Optimize and save the metadata generator
-    # This will make LLM calls.
+
     build_and_optimize_metadata_generator(
         train_examples_for_optimizer=optimizer_train_examples,
-        # eval_examples_for_optimizer=optimizer_eval_examples, # Optional
+
         optimizer_output_path="optimized_metadata_generator.json"
     )
     
 
     
-    # Step 2: Use the Optimized Module to Build the Full RAG KB
+
     kb_source_dataset = load_iac_dataset(split="test", max_examples=20)
     
     if not kb_source_dataset:
