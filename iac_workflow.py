@@ -41,10 +41,10 @@ class IaCGenerator(dspy.Module):
     def _get_rag_context(self, user_prompt: str, generated_code: str = "") -> str:
         if not self.use_rag:
             return ""
-        # This now calls the function that loads from rag_kb.jsonl
+
         return get_relevant_snippets(user_prompt, generated_code)
 
-    def forward(self, prompt: str): # Matches dspy.Example field name
+    def forward(self, prompt: str):
         self.history = []
         current_prompt_text = prompt
         generated_iac = ""
