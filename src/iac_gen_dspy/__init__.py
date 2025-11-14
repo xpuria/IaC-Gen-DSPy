@@ -8,19 +8,25 @@ with DSPy optimization framework, RAG integration, and comprehensive validation.
 __version__ = "0.2.0"
 __author__ = "IaC-Gen-DSPy Team"
 
-# Import components individually to avoid circular dependencies
-from .core.generator import IaCGenerator
-from .rag.store import RAGStore
-from .validation.validator import TerraformValidator
-from .metrics.evaluator import MetricsEvaluator
+# Lazy attribute loading keeps import time light and avoids circular deps.
+__all__ = ["IaCGenerator", "RAGStore", "TerraformValidator", "MetricsEvaluator"]
 
-# Import IaCWorkflow separately to avoid circular imports
-# from .core.workflow import IaCWorkflow
 
-__all__ = [
-    "IaCGenerator",
-    # "IaCWorkflow",  # Import directly from .core.workflow when needed
-    "RAGStore",
-    "TerraformValidator",
-    "MetricsEvaluator"
-]
+def __getattr__(name):
+    if name == "IaCGenerator":
+        from .core.generator import IaCGenerator as _IaCGenerator
+
+        return _IaCGenerator
+    if name == "RAGStore":
+        from .rag.store import RAGStore as _RAGStore
+
+        return _RAGStore
+    if name == "TerraformValidator":
+        from .validation.validator import TerraformValidator as _TerraformValidator
+
+        return _TerraformValidator
+    if name == "MetricsEvaluator":
+        from .metrics.evaluator import MetricsEvaluator as _MetricsEvaluator
+
+        return _MetricsEvaluator
+    raise AttributeError(f"module {__name__} has no attribute {name}")
