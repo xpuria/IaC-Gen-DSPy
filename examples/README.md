@@ -60,6 +60,22 @@ cd examples
 python rag_builder_example.py
 ```
 
+### 4. Graph RAG Comparison (`graph_rag_comparison.py`)
+Compare the classic keyword RAG against the new Graph RAG backend:
+- Builds an in-memory graph that links snippets, keywords, and resources
+- Prints side-by-side retrieval outputs for curated prompts
+- Runs a lightweight evaluation (~10 prompts) and stores metrics in `graph_rag_comparison_results.json`
+
+**Run:**
+```bash
+cd examples
+python graph_rag_comparison.py
+```
+
+**Outputs:**
+- Console comparison of both retrieval approaches
+- Summary metrics written to `graph_rag_comparison_results.json`
+
 ## Prerequisites for All Examples
 
 1. **Environment Setup:**
